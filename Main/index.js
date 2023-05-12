@@ -138,20 +138,22 @@ function loadMainPrompts() {
 
 // View all employees
 function viewEmployees() {
-  db.findAllEmployees()
-    .then(([rows]) => {
-      let employees = rows;
+  db.Employee.findAll()
+    .then(employees => {
       console.log("\n");
       console.table(employees);
     })
-    .then(() => loadMainPrompts());
+    .then(() => loadMainPrompts())
+    .catch(err => {
+      console.error('Error occurred while fetching employees:', err);
+      loadMainPrompts();
+    });
 }
 
 // View all employees that belong to a department
 function viewEmployeesByDepartment() {
-  db.findAllDepartments()
-    .then(([rows]) => {
-      let departments = rows;
+  db.Department.findAll()
+    .then(departments => {
       const departmentChoices = departments.map(({ id, name }) => ({
         name: name,
         value: id
@@ -165,15 +167,23 @@ function viewEmployeesByDepartment() {
           choices: departmentChoices
         }
       ])
-        .then(res => db.findAllEmployeesByDepartment(res.departmentId))
-        .then(([rows]) => {
-          let employees = rows;
+        .then(res => db.Employee.findAll({ where: { department_id: res.departmentId } }))
+        .then(employees => {
           console.log("\n");
           console.table(employees);
         })
         .then(() => loadMainPrompts())
+        .catch(err => {
+          console.error('Error occurred while fetching employees by department:', err);
+          loadMainPrompts();
+        });
+    })
+    .catch(err => {
+      console.error('Error occurred while fetching departments:', err);
+      loadMainPrompts();
     });
 }
+
 
 // View all employees that report to a specific manager
 function viewEmployeesByManager() {
